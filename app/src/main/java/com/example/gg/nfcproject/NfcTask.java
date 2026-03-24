@@ -1,12 +1,17 @@
 package com.example.gg.nfcproject;
 
 import android.nfc.tech.IsoDep;
+import android.nfc.tech.NfcA;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import com.example.gg.nfcproject.util.CmdUtil;
+import com.example.gg.nfcproject.util.GPMethods;
+import com.example.gg.nfcproject.util.LogUtil;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -44,6 +49,13 @@ public class NfcTask extends AsyncTask<IsoDep, String, String[]> {
 
     @Override
     protected String[] doInBackground(IsoDep... isoDeps) {
+//        return  getCardTransceive(isoDeps);
+        return testIsoDepCmds(isoDeps);
+//        return tracsceiveIsoDep(isoDeps);
+//        return null;
+    }
+
+    private String[] getCardTransceive(IsoDep... isoDeps) {
         IsoDep isoDep = isoDeps[0];
 
         try {
@@ -88,8 +100,59 @@ public class NfcTask extends AsyncTask<IsoDep, String, String[]> {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         return null;
+    }
+
+    private String[] tracsceiveIsoDep(IsoDep... isoDeps) {
+//        NfcA nfcA = NfcA.get(tag);
+        IsoDep isoDep = isoDeps[0];
+        String[] results = new String[1];
+        if (isoDep != null) {
+            try {
+                isoDep.connect();
+
+                // 发送 GET_VERSION 命令（通用测试）
+                byte[] testCommand = new byte[]{(byte) 0x60};
+                byte[] response = isoDep.transceive(testCommand);
+
+                results[0] = bytesToHex(response);
+                Log.d("NFC_TEST", "成功响应: " + bytesToHex(response));
+                isoDep.close();
+            } catch (IOException e) {
+                Log.e("NFC_TEST", "通信失败: " + e.getMessage());
+            }
+        }
+        return results;
+    }
+
+    private String[] testIsoDepCmds(IsoDep... isoDeps) {
+        IsoDep isoDep = isoDeps[0];
+        String[] results = new String[CmdUtil.TEST_CMDS.length];
+        if (isoDep != null) {
+            try {
+                isoDep.connect();
+                for (int i = 0; i < CmdUtil.TEST_CMDS.length; i++) {
+                    String cmd = CmdUtil.TEST_CMDS[i];
+                    LogUtil.v(TAG, "cmd: " + cmd);
+                    byte[] response = isoDep.transceive(GPMethods.hexToByteArr(cmd));
+                    results[i] = bytesToHex(response);
+                    LogUtil.v(TAG, "response: " + results[i]);
+                }
+                isoDep.close();
+            } catch (IOException e) {
+                LogUtil.e("NFC_TEST", "通信失败: " + e.getMessage());
+            }
+        }
+        return results;
+    }
+
+
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X ", b));
+        }
+        return sb.toString().trim();
     }
 
     @Override
@@ -111,7 +174,7 @@ public class NfcTask extends AsyncTask<IsoDep, String, String[]> {
         }
 
         textView.setText("交易明细：\n");
-        for (String string: transDetailStrings) {
+        for (String string : transDetailStrings) {
             if (string != null) {
                 textView.append(string + "\n\n");
             }
@@ -131,7 +194,7 @@ public class NfcTask extends AsyncTask<IsoDep, String, String[]> {
             return;
         }
 
-        for (String tmpString: updateString) {
+        for (String tmpString : updateString) {
             textView.setText(tmpString);
         }
     }

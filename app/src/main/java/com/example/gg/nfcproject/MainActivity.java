@@ -16,6 +16,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.gg.nfcproject.util.LogUtil;
+import com.example.gg.nfcproject.util.NfcBankCardReader;
+
 public class MainActivity extends AppCompatActivity {
     private NfcAdapter mNfcAdapter;
     private static final String TAG = "MainActivity";
@@ -57,42 +60,52 @@ public class MainActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
-        Log.i(TAG, intent.getAction());
+        LogUtil.i(TAG, intent.getAction());
 
         final Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
         if (tag == null) {
             return;
         }
-        // Log.i(TAG, "tag.getId(): " + bytesToString(tag.getId()));
+        // LogUtil.i(TAG, "tag.getId(): " + bytesToString(tag.getId()));
 
         String[] strings = tag.getTechList();
         for (String s : strings) {
-            Log.i(TAG, s);
+            LogUtil.i(TAG, s);
         }
+        // getBankCard
+//        NfcBankCardReader reader = new NfcBankCardReader(tag);
+//        String cardNumber = reader.getCardNumber();
+//        if (cardNumber != null) {
+//            LogUtil.d(TAG, "银行卡号: " + cardNumber);
+//            Toast.makeText(MainActivity.this, "card: " + cardNumber, Toast.LENGTH_SHORT).show();
+//        } else {
+//            LogUtil.d(TAG, "读取失败");
+//        }
 
+        //test
         IsoDep isoDep = IsoDep.get(tag);
         if (isoDep != null) {
             new NfcTask(this).execute(isoDep);
         }
 
         if (NfcA.get(tag) != null) {
-            Log.i(TAG, "nfca != null");
+            LogUtil.i(TAG, "nfca != null");
         }
 
         if (NfcB.get(tag) != null) {
-            Log.i(TAG, "nfcb != null");
+            LogUtil.i(TAG, "nfcb != null");
         }
 
         if (NfcV.get(tag) != null) {
-            Log.i(TAG, "nfcv != null");
+            LogUtil.i(TAG, "nfcv != null");
         }
 
         if (NfcF.get(tag) != null) {
-            Log.i(TAG, "nfcf != null");
+            LogUtil.i(TAG, "nfcf != null");
         }
 
         if (Ndef.get(tag) != null) {
-            Log.i(TAG, "ndef != null");
+            LogUtil.i(TAG, "ndef != null");
         }
     }
 
@@ -110,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
                 {IsoDep.class.getName()}, {NfcA.class.getName()}, {NfcB.class.getName()},
                 {NfcV.class.getName()}, {NfcF.class.getName()}, {Ndef.class.getName()}};
         for (String[] strings : techList) {
-            Log.i(TAG, strings[0]);
+            LogUtil.i(TAG, strings[0]);
         }
         mNfcAdapter.enableForegroundDispatch(this, pendingIntent, null, techList);
     }
